@@ -173,7 +173,7 @@ void funcion_hebra_consumidora_FIFO(){
 }
 //----------------------------------------------------------------------
 
-void main(){
+int main(){
    cout << "--------------------------------------------------------" << endl
         << "Problema de los productores-consumidores (solución FIFO)." << endl
         << "--------------------------------------------------------" << endl
