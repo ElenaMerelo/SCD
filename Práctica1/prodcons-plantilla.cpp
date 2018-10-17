@@ -12,15 +12,15 @@ using namespace SEM ;
 // variables compartidas
 
 const int num_items = 75 ,   // número de items
-					primera_celda_ocupada_FIFO= 0, // primera celda ocupada en el vector. Se incrementa al leer
-					primera_celda_libre= 0, //se incrementa al leer
-					primera_celda_ocupada_LIFO= 0, // se incrementa al leer y se decrementa al escribir
 	       	tam_vec   = 15 ;   // tamaño del buffer
+int				primera_celda_ocupada_FIFO= 0, // primera celda ocupada en el vector. Se incrementa al leer
+					primera_celda_libre= 0, //se incrementa al leer
+					primera_celda_ocupada_LIFO= 0; // se incrementa al leer y se decrementa al escribir
 unsigned  cont_prod[num_items] = {0}, // contadores de verificación: producidos
 					buffer[tam_vec]= {0},
           cont_cons[num_items] = {0}; // contadores de verificación: consumidos
-Semaphore ocupadas= 0;	//número de entradas ocupadas del búffer (#E - #L)
-Semaphore libres= tam_vec; //número de entradas libres del búffer (k + #L - #E), con k el tamaño fijo del búffer
+Semaphore puede_consumir= 0;	//número de entradas ocupadas del búffer (#E - #L)
+Semaphore puede_producir= tam_vec; //número de entradas libres del búffer (k + #L - #E), con k el tamaño fijo del búffer
 
 
 //**********************************************************************
@@ -93,7 +93,7 @@ void  funcion_hebra_productora_LIFO(){
 	int a;
 	for( unsigned i = 0 ; i < num_items ; i++ ){
 	  a = producir_dato() ;
-	  sem_wait(libres); //esperamos a que pueda escribir
+	  sem_wait(puede_producir); //esperamos a que pueda escribir
 		//escribimos el dato en a, sentencia e
 		cout << "\nEscribimos " << a << ".Buffer antes de escribir: ";
 		mostrar_buffer();
@@ -104,7 +104,7 @@ void  funcion_hebra_productora_LIFO(){
 		cout << "\nBuffer después: ";
 		mostrar_buffer();
 
-		sem_signal(ocupadas); //indicamos que ya se puede leer
+		sem_signal(puede_consumir); //indicamos que ya se puede leer
 	}
 }
 
@@ -113,7 +113,7 @@ void  funcion_hebra_productora_LIFO(){
 void funcion_hebra_consumidora_LIFO(){
 	int b;
 	for( unsigned i = 0 ; i < num_items ; i++ ){
-		sem_wait(ocupadas);
+		sem_wait(puede_consumir);
 		//leemos b del buffer, sentencia l
 		cout << "\nLeemos " << b << ".Buffer antes de leer: ";
 		mostrar_buffer();
@@ -124,7 +124,7 @@ void funcion_hebra_consumidora_LIFO(){
 		cout << "\nBuffer después: ";
 		mostrar_buffer();
 
-		sem_signal(libres);
+		sem_signal(puede_producir);
 		consumir_dato(b) ;
 	}
 }
@@ -136,7 +136,7 @@ void  funcion_hebra_productora_FIFO(){
 	int a;
 	for( unsigned i = 0 ; i < num_items ; i++ ){
 	  a = producir_dato() ;
-	  sem_wait(libres); //esperamos a que pueda escribir
+	  sem_wait(puede_producir); //esperamos a que pueda escribir
 
 		cout << "\nEscribimos " << a << ". Buffer antes de escribir: ";
 		mostrar_buffer();
@@ -147,7 +147,7 @@ void  funcion_hebra_productora_FIFO(){
 		cout << "\nBuffer después de escribir: ";
 		mostrar_buffer();
 
-		sem_signal(ocupadas); //indicamos que ya se puede leer
+		sem_signal(puede_consumir); //indicamos que ya se puede leer
 	}
 }
 
@@ -156,7 +156,7 @@ void  funcion_hebra_productora_FIFO(){
 void funcion_hebra_consumidora_FIFO(){
 	int b;
 	for( unsigned i = 0 ; i < num_items ; i++ ){
-		sem_wait(ocupadas);
+		sem_wait(puede_consumir);
 		//leer a de vec, sentencia l
 		cout << "\nVamos a leer " << b << ". Buffer antes de leer: ";
 		mostrar_buffer();
@@ -167,7 +167,7 @@ void funcion_hebra_consumidora_FIFO(){
 		cout << "\nBuffer después de leer: ";
 		mostrar_buffer();
 
-		sem_signal(libres);
+		sem_signal(puede_producir);
 		consumir_dato(b) ;
 	}
 }
