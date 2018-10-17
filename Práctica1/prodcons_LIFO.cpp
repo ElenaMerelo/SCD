@@ -13,9 +13,7 @@ using namespace SEM ;
 
 const int num_items = 75 ,   // número de items
 	       	tam_vec   = 15 ;   // tamaño del buffer
-int				primera_celda_ocupada_FIFO= 0, // primera celda ocupada en el vector. Se incrementa al leer
-					primera_celda_libre= 0, //se incrementa al leer
-					primera_celda_ocupada_LIFO= 0; // se incrementa al leer y se decrementa al escribir
+int				primera_celda_ocupada_LIFO= 0; //se incrementa al leer
 unsigned  cont_prod[num_items] = {0}, // contadores de verificación: producidos
 					buffer[tam_vec]= {0},
           cont_cons[num_items] = {0}; // contadores de verificación: consumidos
@@ -98,14 +96,16 @@ void  funcion_hebra_productora_LIFO(){
 	  a = producir_dato() ;
 	  sem_wait(puede_producir); //esperamos a que pueda escribir
 		//escribimos el dato en a, sentencia e
-		cout << "\nEscribimos " << a << ".Buffer antes de escribir: ";
-		mostrar_buffer();
+		//cout << "\nEscribimos " << a << ".Buffer antes de escribir: ";
+		//mostrar_buffer();
 
-		buffer[primera_celda_ocupada_LIFO]= a;
+    mtx.lock();
+		buffer[primera_celda_ocupada_LIFO % tam_vec]= a;
 		primera_celda_ocupada_LIFO++;
+		mtx.unlock();
 
-		cout << "\nBuffer después: ";
-		mostrar_buffer();
+		//cout << "\nBuffer después: ";
+		//mostrar_buffer();
 
 		sem_signal(puede_consumir); //indicamos que ya se puede leer
 	}
@@ -118,84 +118,31 @@ void funcion_hebra_consumidora_LIFO(){
 	for( unsigned i = 0 ; i < num_items ; i++ ){
 		sem_wait(puede_consumir);
 		//leemos b del buffer, sentencia l
-		cout << "\nLeemos " << b << ".Buffer antes de leer: ";
-		mostrar_buffer();
-
-		b= buffer[primera_celda_ocupada_LIFO];
-		primera_celda_ocupada_LIFO--;
-
-		cout << "\nBuffer después: ";
-		mostrar_buffer();
-
-		sem_signal(puede_producir);
-		consumir_dato(b) ;
-	}
-}
-
-
-//----------------------------------------------------------------------
-
-void  funcion_hebra_productora_FIFO(){
-	int a;
-	for( unsigned i = 0 ; i < num_items ; i++ ){
-	  a = producir_dato() ;
-	  sem_wait(puede_producir); //esperamos a que pueda escribir
-
-		//cout << "\nEscribimos " << a << ". Buffer antes de escribir: ";
+		//cout << "\nLeemos " << b << ".Buffer antes de leer: ";
 		//mostrar_buffer();
 
-		buffer[primera_celda_libre % tam_vec]= a;
-		primera_celda_libre++;
+    mtx.lock();
+    primera_celda_ocupada_LIFO--;
+		b= buffer[primera_celda_ocupada_LIFO %tam_vec];
+		mtx.unlock();
 
-		//cout << "\nBuffer después de escribir: ";
-		//mostrar_buffer();
-
-		sem_signal(puede_consumir); //indicamos que ya se puede leer
-	}
-}
-
-//----------------------------------------------------------------------
-
-void funcion_hebra_consumidora_FIFO(){
-	int b;
-	for( unsigned i = 0 ; i < num_items ; i++ ){
-		sem_wait(puede_consumir);
-		//leer a de vec, sentencia l
-		//cout << "\nVamos a leer " << b << ". Buffer antes de leer: ";
-		//mostrar_buffer();
-
-		b= buffer[primera_celda_ocupada_FIFO % tam_vec];
-		primera_celda_ocupada_FIFO++;
-
-		//cout << "\nBuffer después de leer: ";
+		//cout << "\nBuffer después: ";
 		//mostrar_buffer();
 
 		sem_signal(puede_producir);
 		consumir_dato(b) ;
 	}
 }
+
 //----------------------------------------------------------------------
 
 int main(){
-   cout << "--------------------------------------------------------" << endl
-        << "Problema de los productores-consumidores (solución FIFO)." << endl
-        << "--------------------------------------------------------" << endl
-        << flush ;
-
-   thread hebra_productora ( funcion_hebra_productora_FIFO ),
-          hebra_consumidora( funcion_hebra_consumidora_FIFO);
-
-   hebra_productora.join() ;
-   hebra_consumidora.join() ;
-
-   test_contadores();
-
 	 cout << "--------------------------------------------------------" << endl
 				<< "Problema de los productores-consumidores (solución LIFO)." << endl
 				<< "--------------------------------------------------------" << endl
 				<< flush ;
 
-	 hebra_productora= thread( funcion_hebra_productora_LIFO ), hebra_consumidora= thread( funcion_hebra_consumidora_LIFO);
+	 thread hebra_productora( funcion_hebra_productora_LIFO ), hebra_consumidora( funcion_hebra_consumidora_LIFO);
 
 	 hebra_productora.join() ;
 	 hebra_consumidora.join() ;
