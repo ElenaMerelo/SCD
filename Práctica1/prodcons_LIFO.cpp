@@ -11,8 +11,8 @@ using namespace SEM ;
 //**********************************************************************
 // variables compartidas
 
-const int num_items = 75 ,   // número de items
-	       	tam_vec   = 15 ;   // tamaño del buffer
+const int num_items = 30 ,   // número de items
+	       	tam_vec   = 7 ;   // tamaño del buffer
 int				primera_celda_ocupada_LIFO= 0; //se incrementa al leer
 unsigned  cont_prod[num_items] = {0}, // contadores de verificación: producidos
 					buffer[tam_vec]= {0},
@@ -93,7 +93,7 @@ void mostrar_buffer(){
 void  funcion_hebra_productora_LIFO(){
 	int a;
 	for( unsigned i = 0 ; i < num_items ; i++ ){
-	  a = producir_dato() ;
+    a = producir_dato() ;
 	  sem_wait(puede_producir); //esperamos a que pueda escribir
 		//escribimos el dato en a, sentencia e
 		//cout << "\nEscribimos " << a << ".Buffer antes de escribir: ";
@@ -123,14 +123,14 @@ void funcion_hebra_consumidora_LIFO(){
 
     mtx.lock();
     primera_celda_ocupada_LIFO--;
-		b= buffer[primera_celda_ocupada_LIFO %tam_vec];
+		b= buffer[primera_celda_ocupada_LIFO % tam_vec];
 		mtx.unlock();
 
 		//cout << "\nBuffer después: ";
 		//mostrar_buffer();
 
 		sem_signal(puede_producir);
-		consumir_dato(b) ;
+    consumir_dato(b) ;
 	}
 }
 
