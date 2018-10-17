@@ -21,7 +21,7 @@ unsigned  cont_prod[num_items] = {0}, // contadores de verificación: producidos
           cont_cons[num_items] = {0}; // contadores de verificación: consumidos
 Semaphore puede_consumir= 0;	//número de entradas ocupadas del búffer (#E - #L)
 Semaphore puede_producir= tam_vec; //número de entradas libres del búffer (k + #L - #E), con k el tamaño fijo del búffer
-
+mutex mtx;
 
 //**********************************************************************
 // plantilla de función para generar un entero aleatorio uniformemente
@@ -43,7 +43,9 @@ int producir_dato(){
    static int contador = 0 ;
    this_thread::sleep_for( chrono::milliseconds( aleatorio<20,100>() ));
 
+	 mtx.lock();
    cout << "producido: " << contador << endl << flush ;
+	 mtx.unlock();
 
    cont_prod[contador] ++ ;
    return contador++ ;
@@ -55,8 +57,9 @@ void consumir_dato( unsigned dato ){
    cont_cons[dato] ++ ;
    this_thread::sleep_for( chrono::milliseconds( aleatorio<20,100>() ));
 
+	 mtx.lock();
    cout << "                  consumido: " << dato << endl ;
-
+	 mtx.unlock();
 }
 
 
