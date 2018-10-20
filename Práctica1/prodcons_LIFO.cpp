@@ -49,6 +49,10 @@ int producir_dato(){
    return contador++ ;
 }
 //----------------------------------------------------------------------
+void mostrar_buffer(){
+	for(unsigned i= 0; i< tam_vec; i++)
+	cout << buffer[i] << " ";
+}
 
 void consumir_dato( unsigned dato ){
    assert( dato < num_items );
@@ -83,29 +87,20 @@ void test_contadores(){
 		cout << endl << flush << "solución (aparentemente) correcta." << endl << flush ;
 }
 
-void mostrar_buffer(){
-	for(unsigned i= 0; i< tam_vec; i++)
-		cout << buffer[i] << " ";
-}
 
 //----------------------------------------------------------------------
 
 void  funcion_hebra_productora_LIFO(){
 	int a;
 	for( unsigned i = 0 ; i < num_items ; i++ ){
-    a = producir_dato() ;
+		a = producir_dato() ;
 	  sem_wait(puede_producir); //esperamos a que pueda escribir
 		//escribimos el dato en a, sentencia e
-		//cout << "\nEscribimos " << a << ".Buffer antes de escribir: ";
-		//mostrar_buffer();
 
     mtx.lock();
-		buffer[primera_celda_ocupada_LIFO % tam_vec]= a;
+		buffer[primera_celda_ocupada_LIFO]= a;
 		primera_celda_ocupada_LIFO++;
 		mtx.unlock();
-
-		//cout << "\nBuffer después: ";
-		//mostrar_buffer();
 
 		sem_signal(puede_consumir); //indicamos que ya se puede leer
 	}
@@ -118,19 +113,13 @@ void funcion_hebra_consumidora_LIFO(){
 	for( unsigned i = 0 ; i < num_items ; i++ ){
 		sem_wait(puede_consumir);
 		//leemos b del buffer, sentencia l
-		//cout << "\nLeemos " << b << ".Buffer antes de leer: ";
-		//mostrar_buffer();
-
     mtx.lock();
     primera_celda_ocupada_LIFO--;
-		b= buffer[primera_celda_ocupada_LIFO % tam_vec];
+		b= buffer[primera_celda_ocupada_LIFO];
 		mtx.unlock();
 
-		//cout << "\nBuffer después: ";
-		//mostrar_buffer();
-
 		sem_signal(puede_producir);
-    consumir_dato(b) ;
+		consumir_dato(b) ;
 	}
 }
 
