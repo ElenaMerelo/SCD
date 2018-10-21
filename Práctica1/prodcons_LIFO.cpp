@@ -11,8 +11,8 @@ using namespace SEM ;
 //**********************************************************************
 // variables compartidas
 
-const int num_items = 30 ,   // número de items
-	       	tam_vec   = 7 ;   // tamaño del buffer
+const int num_items = 75 ,   // número de items
+	       	tam_vec   = 15 ;   // tamaño del buffer
 int				primera_celda_ocupada_LIFO= 0; //se incrementa al leer
 unsigned  cont_prod[num_items] = {0}, // contadores de verificación: producidos
 					buffer[tam_vec]= {0},
@@ -93,17 +93,23 @@ void test_contadores(){
 void  funcion_hebra_productora_LIFO(){
 	int a;
 	for( unsigned i = 0 ; i < num_items ; i++ ){
-		a = producir_dato() ;
 	  sem_wait(puede_producir); //esperamos a que pueda escribir
-		//escribimos el dato en a, sentencia e
+		a = producir_dato() ;
+		//cout << "\nVamos a escribir " << a << ". Buffer antes de escribir: ";
+		//mostrar_buffer();
 
+		//escribimos el dato en a, sentencia e
     mtx.lock();
 		buffer[primera_celda_ocupada_LIFO]= a;
 		primera_celda_ocupada_LIFO++;
 		mtx.unlock();
 
+		//cout << "\nBuffer después de escribir: ";
+		//mostrar_buffer();
+
 		sem_signal(puede_consumir); //indicamos que ya se puede leer
 	}
+	cout << "\nFin de hebra productora";
 }
 
 //----------------------------------------------------------------------
@@ -112,15 +118,23 @@ void funcion_hebra_consumidora_LIFO(){
 	int b;
 	for( unsigned i = 0 ; i < num_items ; i++ ){
 		sem_wait(puede_consumir);
+
+		//cout << "\nVamos a leer " << b << ". Buffer antes de leer: ";
+		//mostrar_buffer();
+
 		//leemos b del buffer, sentencia l
     mtx.lock();
     primera_celda_ocupada_LIFO--;
 		b= buffer[primera_celda_ocupada_LIFO];
 		mtx.unlock();
 
-		sem_signal(puede_producir);
 		consumir_dato(b) ;
+
+		//cout << "\nBuffer después de leer: ";
+		//mostrar_buffer();
+		sem_signal(puede_producir);
 	}
+	cout << "\nFin de hebra consumidora";
 }
 
 //----------------------------------------------------------------------

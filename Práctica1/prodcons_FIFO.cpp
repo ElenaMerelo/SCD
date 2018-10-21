@@ -94,8 +94,8 @@ void mostrar_buffer(){
 void  funcion_hebra_productora_FIFO(){
 	int a;
 	for( unsigned i = 0 ; i < num_items ; i++ ){
-	  a = producir_dato() ;
 	  sem_wait(puede_producir); //esperamos a que pueda escribir
+		a = producir_dato() ;
 
 		//cout << "\nEscribimos " << a << ". Buffer antes de escribir: ";
 		//mostrar_buffer();
@@ -108,6 +108,7 @@ void  funcion_hebra_productora_FIFO(){
 
 		sem_signal(puede_consumir); //indicamos que ya se puede leer
 	}
+	cout << "\nFin de hebra productora " << endl;
 }
 
 //----------------------------------------------------------------------
@@ -123,12 +124,12 @@ void funcion_hebra_consumidora_FIFO(){
 		b= buffer[primera_celda_ocupada_FIFO % tam_vec];
 		primera_celda_ocupada_FIFO++;
 
+		consumir_dato(b) ;
 		//cout << "\nBuffer después de leer: ";
 		//mostrar_buffer();
-
 		sem_signal(puede_producir);
-		consumir_dato(b) ;
 	}
+	cout << "\nFin hebra consumidora";
 }
 //----------------------------------------------------------------------
 

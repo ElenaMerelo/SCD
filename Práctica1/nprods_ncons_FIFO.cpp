@@ -1,3 +1,5 @@
+// Compilación: g++ -std=c++11 -pthread nprods_ncons_FIFO.cpp -o nprods_ncons_FIFO Semaphore.cpp
+
 #include <iostream>
 #include <cassert>
 #include <thread>
@@ -22,7 +24,6 @@ unsigned  cont_prod[num_items] = {0}, // contadores de verificación: producidos
           cont_cons[num_items] = {0}; // contadores de verificación: consumidos
 Semaphore puede_consumir= 0;	//número de entradas ocupadas del búffer (#E - #L)
 Semaphore puede_producir= tam_vec; //número de entradas libres del búffer (k + #L - #E), con k el tamaño fijo del búffer
-Semaphore alguien_consumiendo= 1, alguien_produciendo= 1;	//ambos a 1 dado que al principio no hay nadie consumiendo ni produciendo, para que puedan empezar a hacerlo
 mutex mtx;
 
 //**********************************************************************
@@ -104,14 +105,17 @@ void  funcion_hebra_productora_FIFO(){
 
 		sem_wait(puede_producir); //esperamos a que pueda escribir
 
-		sem_wait(alguien_produciendo); // cuando haya alguien produciendo
+		//cout << "\nEscribimos " << a << ". Buffer antes de escribir: ";
+		//mostrar_buffer();
 		a = producir_dato() ; //creamos el dato
 		buffer[primera_celda_libre % tam_vec]= a; // lo escribimos en la primera posición libre del buffer (teniendo en cuenta que lo recorremos de manera circular)
 		primera_celda_libre++;
-		sem_signal(alguien_produciendo);
 
+		//cout << "\nBuffer después de escribir: ";
+		//mostrar_buffer();
 		sem_signal(puede_consumir); //indicamos que ya se puede leer
 	}
+	cout << "\nFin de hebra productora";
 }
 
 
@@ -124,15 +128,18 @@ void funcion_hebra_consumidora_FIFO(){
 		consumidos++;
 		mtx.unlock();
 
-		sem_wait(alguien_consumiendo);
-
 		sem_wait(puede_consumir);
+		//cout << "\nVamos a leer " << b << ". Buffer antes de leer: ";
+		//mostrar_buffer();
 		b= buffer[primera_celda_ocupada_FIFO % tam_vec];
 		primera_celda_ocupada_FIFO++;
 		consumir_dato(b) ;
+
+		//cout << "\nBuffer después de leer: ";
+		//mostrar_buffer();
 		sem_signal(puede_producir);
 
-		sem_signal(alguien_consumiendo);
+		//sem_signal(alguien_consumiendo);
 	}
 }
 //----------------------------------------------------------------------
