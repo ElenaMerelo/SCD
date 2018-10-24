@@ -153,6 +153,8 @@ int main(){
         << "--------------------------------------------------------" << endl
         << flush ;
   int prods, cons;
+	producidos= consumidos= 0;
+	
   cout << "\nIntroduzca número deseado de productores y consumidores: ";
   cin >> prods >> cons;
 

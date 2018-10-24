@@ -150,6 +150,8 @@ void funcion_hebra_consumidora_FIFO(){
 
 int main(){
 	int n, prods, cons;
+	producidos= consumidos= 0;
+
 	cout << "--------------------------------------------------------" << endl
 			 << "Problema de n productores- n consumidores (solución FIFO)." << endl
 			 << "--------------------------------------------------------" << endl
