@@ -5,6 +5,7 @@
 #include <thread>
 #include <mutex>
 #include <random>
+#include <atomic>
 #include "Semaphore.h"
 
 using namespace std ;
@@ -15,14 +16,15 @@ using namespace SEM ;
 
 const int num_items = 75 ,   // número de items
 	       	tam_vec   = 15 ;   // tamaño del buffer
-int				producidos= 0, consumidos= 0,
-          primera_celda_ocupada_LIFO= 0; //se incrementa al leer
+int				primera_celda_ocupada_LIFO= 0; //se incrementa al leer
 unsigned  cont_prod[num_items] = {0}, // contadores de verificación: producidos
 					buffer[tam_vec]= {0},
           cont_cons[num_items] = {0}; // contadores de verificación: consumidos
 Semaphore puede_consumir= 0;	//número de entradas ocupadas del búffer (#E - #L)
 Semaphore puede_producir= tam_vec; //número de entradas libres del búffer (k + #L - #E), con k el tamaño fijo del búffer
 mutex mtx;
+atomic<int> producidos, consumidos;
+
 
 //**********************************************************************
 // plantilla de función para generar un entero aleatorio uniformemente
@@ -56,6 +58,8 @@ void mostrar_buffer(){
 	for(unsigned i= 0; i< tam_vec; i++)
 	cout << buffer[i] << " ";
 }
+
+//----------------------------------------------------------------------
 
 void consumir_dato( unsigned dato ){
    assert( dato < num_items );
@@ -96,9 +100,7 @@ void test_contadores(){
 void  funcion_hebra_productora_LIFO(){
 	int a;
 	while(producidos < num_items){
-    mtx.lock();
     producidos++;
-    mtx.unlock();
 
 	  sem_wait(puede_producir); //esperamos a que pueda escribir
     //cout << "\nEscribimos " << a << ". Buffer antes de escribir: ";
@@ -116,7 +118,7 @@ void  funcion_hebra_productora_LIFO(){
 
 		sem_signal(puede_consumir); //indicamos que ya se puede leer
 	}
-  cout << "\nFin de hebra productora";
+  cout << "\nFin de hebra productora\n";
 }
 
 //----------------------------------------------------------------------
@@ -124,9 +126,7 @@ void  funcion_hebra_productora_LIFO(){
 void funcion_hebra_consumidora_LIFO(){
 	int b;
   while(consumidos < num_items){
-    mtx.lock();
     consumidos++;
-    mtx.unlock();
 
     sem_wait(puede_consumir);
     //cout << "\nVamos a leer " << b << ". Buffer antes de leer: ";
@@ -142,7 +142,7 @@ void funcion_hebra_consumidora_LIFO(){
     //mostrar_buffer();
 		sem_signal(puede_producir);
 	}
-  cout << "\nFin de hebra consumidora";
+  cout << "\nFin de hebra consumidora\n";
 }
 
 //----------------------------------------------------------------------

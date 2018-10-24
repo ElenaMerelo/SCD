@@ -6,6 +6,7 @@
 #include <mutex>
 #include <random>
 #include <future>
+#include <atomic>
 #include "Semaphore.h"
 
 using namespace std ;
@@ -17,7 +18,6 @@ using namespace SEM ;
 const int num_items = 75 ,   // número de items
 	       	tam_vec   = 15 ;   // tamaño del buffer
 int				primera_celda_ocupada_FIFO= 0, // primera celda ocupada en el vector. Se incrementa al leer
-					producidos= 0, consumidos= 0,
 					primera_celda_libre= 0; //se incrementa al leer
 unsigned  cont_prod[num_items] = {0}, // contadores de verificación: producidos
 					buffer[tam_vec]= {0},
@@ -25,6 +25,7 @@ unsigned  cont_prod[num_items] = {0}, // contadores de verificación: producidos
 Semaphore puede_consumir= 0;	//número de entradas ocupadas del búffer (#E - #L)
 Semaphore puede_producir= tam_vec; //número de entradas libres del búffer (k + #L - #E), con k el tamaño fijo del búffer
 mutex mtx;
+atomic<int> producidos, consumidos;
 
 //**********************************************************************
 // plantilla de función para generar un entero aleatorio uniformemente
@@ -53,6 +54,16 @@ int producir_dato(){
    cont_prod[contador] ++ ;
    return contador++ ;
 }
+
+//----------------------------------------------------------------------
+
+void mostrar_buffer(){
+	for(unsigned i= 0; i< tam_vec; i++)
+		cout <<  " " << buffer[i];
+
+	cout << endl;
+}
+
 //----------------------------------------------------------------------
 
 void consumir_dato( unsigned dato ){
@@ -61,7 +72,8 @@ void consumir_dato( unsigned dato ){
    this_thread::sleep_for( chrono::milliseconds( aleatorio<20,100>() ));
 
 	 mtx.lock();
-   cout << "                  consumido: " << dato << endl ;
+   cout << "                  consumido: " << dato << ".Buffer: " ;
+	 mostrar_buffer();
 	 mtx.unlock();
 }
 
@@ -88,20 +100,13 @@ void test_contadores(){
 		cout << endl << flush << "solución (aparentemente) correcta." << endl << flush ;
 }
 
-void mostrar_buffer(){
-	for(unsigned i= 0; i< tam_vec; i++)
-		cout << buffer[i] << " ";
-}
-
 //----------------------------------------------------------------------
 
 void  funcion_hebra_productora_FIFO(){
 	int a;
 
 	while(producidos < num_items){
-		mtx.lock(); //para aumentar el número de datos producidos en exclusión mutua
 		producidos++;
-		mtx.unlock();
 
 		sem_wait(puede_producir); //esperamos a que pueda escribir
 
@@ -115,7 +120,7 @@ void  funcion_hebra_productora_FIFO(){
 		//mostrar_buffer();
 		sem_signal(puede_consumir); //indicamos que ya se puede leer
 	}
-	cout << "\nFin de hebra productora";
+	cout << "\nFin de hebra productora\n";
 }
 
 
@@ -124,9 +129,7 @@ void  funcion_hebra_productora_FIFO(){
 void funcion_hebra_consumidora_FIFO(){
 	int b;
 	while(consumidos < num_items){
-		mtx.lock();
 		consumidos++;
-		mtx.unlock();
 
 		sem_wait(puede_consumir);
 		//cout << "\nVamos a leer " << b << ". Buffer antes de leer: ";
@@ -141,6 +144,7 @@ void funcion_hebra_consumidora_FIFO(){
 
 		//sem_signal(alguien_consumiendo);
 	}
+	cout << "\nFin de hebra consumidora\n";
 }
 //----------------------------------------------------------------------
 
