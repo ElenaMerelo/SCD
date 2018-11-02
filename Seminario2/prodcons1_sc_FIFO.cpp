@@ -3,7 +3,6 @@
 // Sistemas concurrentes y Distribuidos.
 // Seminario 2. Introducción a los monitores en C++11.
 //
-// archivo: prodcons_1_FIFO.cpp
 // Ejemplo de un monitor en C++11 con semántica SC, para el problema
 // del productor/consumidor, con un único productor y un único consumidor.
 // Opcion FIFO (stack)
@@ -98,7 +97,7 @@ void test_contadores() {
 }
 
 // *****************************************************************************
-// clase para monitor buffer, version LIFO, semántica SC, un prod. y un cons.
+// clase para monitor buffer, version FIFO, semántica SC, un prod. y un cons.
 
 class ProdCons1SC{
  private:

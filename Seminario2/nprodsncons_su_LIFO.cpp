@@ -3,7 +3,6 @@
 // Sistemas concurrentes y Distribuidos.
 // Seminario 2. Introducción a los monitores en C++11.
 //
-// archivo: nprodancons_sc_LIFO.cpp
 // Ejemplo de un monitor en C++11 con semántica SU, para el problema
 // del productor/consumidor, con n productores y n consumidores.
 // Una versión posible, no como la pedida en las diapositivas.
@@ -100,7 +99,7 @@ void test_contadores() {
 }
 
 // *****************************************************************************
-// clase para monitor buffer, version LIFO, semántica SC, un prod. y un cons.
+// clase para monitor buffer, version LIFO, semántica SU, n prod. y n cons.
 
 class ProdConsNSC: public HoareMonitor {
  private:
@@ -131,8 +130,6 @@ ProdConsNSC::ProdConsNSC(  ){
 // función llamada por el consumidor para extraer un dato
 
 int ProdConsNSC::leer(){
-   // ganar la exclusión mutua del monitor con una guarda
-
    // esperar bloqueado hasta que 0 < num_celdas_ocupadas
    while ( primera_libre == 0 )
       ocupadas.wait();
@@ -152,9 +149,6 @@ int ProdConsNSC::leer(){
 // -----------------------------------------------------------------------------
 
 void ProdConsNSC::escribir( int valor ){
-   // ganar la exclusión mutua del monitor con una guarda
-
-
    // esperar bloqueado hasta que num_celdas_ocupadas < num_celdas_total
    while ( primera_libre == num_celdas_total )
       libres.wait();
