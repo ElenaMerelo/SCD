@@ -6,6 +6,7 @@
 // archivo: nprodancons_sc_LIFO.cpp
 // Ejemplo de un monitor en C++11 con semántica SC, para el problema
 // del productor/consumidor, con n productores y n consumidores.
+// Una versión posible, no como la pedida en las diapositivas.
 // Opcion LIFO (stack)
 //
 // -----------------------------------------------------------------------------

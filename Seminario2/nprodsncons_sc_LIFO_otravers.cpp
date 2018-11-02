@@ -135,7 +135,7 @@ int ProdConsNSC::leer(){
    // ganar la exclusión mutua del monitor con una guarda
 
    // esperar bloqueado hasta que 0 < num_celdas_ocupadas
-   if ( primera_libre == 0 )
+   while ( primera_libre == 0 )
       ocupadas.wait( guarda );
 
    // hacer la operación de lectura, actualizando estado del monitor
@@ -158,7 +158,7 @@ void ProdConsNSC::escribir( int valor ){
 
 
    // esperar bloqueado hasta que num_celdas_ocupadas < num_celdas_total
-   if ( primera_libre == num_celdas_total )
+   while ( primera_libre == num_celdas_total )
       libres.wait( guarda );
 
    //cout << "escribir: ocup == " << num_celdas_ocupadas << ", total == " << num_celdas_total << endl ;
