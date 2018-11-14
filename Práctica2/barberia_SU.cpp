@@ -52,6 +52,7 @@ private:
   static const int n= 10;
   CondVar sala_espera; //cola condición para los que esperan en la sala de espera
   CondVar barbero; //cola de condición que indica si hay alguien en la silla de pelar
+  CondVar silla_pelar;
   bool silla_vacia;
 public:
   Barberia();
@@ -66,6 +67,7 @@ public:
 Barberia::Barberia(){
   sala_espera= newCondVar();
   barbero= newCondVar();
+  silla_pelar= newCondVar();
 
   //Suponemos que inicialmente no hay nadie en la barbería, por lo que el barbero duerme
   silla_vacia= true;
@@ -76,15 +78,16 @@ Barberia::Barberia(){
 void Barberia::cortarPelo(int i){
   cout << "\nCliente " << i << " entra a la barberia";
   if(!sala_espera.empty() || !silla_vacia){ //si hay clientes esperando o la silla está llena
-    cout << "\nEl barbero está ocupado: cliente " << i << " va a sala de espera\n";
+    cout << "\nEl barbero está ocupado: cliente ( " << i << " ) va a sala de espera\n";
     sala_espera.wait(); //mandamos al cliente nuevo a la sala de espera
   }
 
   //Si no
   barbero.signal(); //despertamos al barbero
   silla_vacia= false; //sentamos al cliente
-  sala_espera.signal(); //sacamos al cliente que lleva más tiempo esperando de la sala de espera
-}
+  cout << "Cliente ( " << i << " ) se sienta." << endl << flush;
+  silla_pelar.wait();
+  cout << "Cliente ( " << i << " ) se levanta." << endl << flush;}
 
 
 //----------------------------------------------------------------------
@@ -95,18 +98,7 @@ void Barberia::siguienteCliente(){
     barbero.wait(); //si no hay ningún cliente que pelar se echa a dormir el barbero
   }
 
-  //Si la silla de pelar está vacía
-  if(silla_vacia && !sala_espera.empty()){ // si hay clientes esperando
-    cout << "\nNo hay cliente sentado: que pase uno de la sala de espera.\n";
-    silla_vacia= false;
-    sala_espera.signal();
-    barbero.signal();
-  }
-
-  if(!silla_vacia){
-    cout << "\nYa hay un cliente sentado.";
-    barbero.signal();
-  }
+  else sala_espera.signal();
 
 }
 
@@ -115,6 +107,7 @@ void Barberia::siguienteCliente(){
 void Barberia::finCliente(){
   cout << "\nFin de cliente\n";
   silla_vacia= true;
+  silla_pelar.signal();
 }
 
 //----------------------------------------------------------------------
