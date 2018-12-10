@@ -30,7 +30,7 @@ const int
    etiq_cons= 1,
    etiq_buffer= 2,
    id_buffer             = nprods ,
-   num_procesos_esperado = ncons + nprods ,
+   num_procesos_esperado = ncons + nprods +1 ,
    num_items             = nprods*ncons*2,
    k_prods= num_items/nprods,
    k_cons= num_items/ncons,
